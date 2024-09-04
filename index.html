@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Robot Voice Control</title>
+</head>
+<body>
+    <h1>Control Your Arduino Robot</h1>
+    <button onclick="startVoiceCommand()">Start Voice Command</button>
+    <p id="status">Status: Waiting for command...</p>
+
+    <script>
+        function startVoiceCommand() {
+            const statusElement = document.getElementById("status");
+
+            // Check if the browser supports Speech Recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                statusElement.textContent = "Speech Recognition not supported in this browser.";
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US'; // Set the language
+
+            recognition.onstart = function () {
+                statusElement.textContent = "Listening for commands...";
+            };
+
+            recognition.onresult = function (event) {
+                const command = event.results[0][0].transcript.toLowerCase();
+                statusElement.textContent = `Command received: ${command}`;
+                sendCommandToArduino(command);
+            };
+
+            recognition.onerror = function (event) {
+                statusElement.textContent = `Error: ${event.error}`;
+            };
+
+            recognition.start();
+        }
+
+        function sendCommandToArduino(command) {
+            const arduinoUrl = 'http://192.168.4.1/command'; // Replace with your Arduino's IP address
+
+            fetch(arduinoUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ 'command': command })
+            })
+            .then(response => response.text())
+            .then(data => console.log('Command sent:', data))
+            .catch(error => console.error('Error sending command:', error));
+        }
+    </script>
+</body>
+</html>
