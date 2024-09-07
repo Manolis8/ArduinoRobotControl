@@ -3,55 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arduino Robot Voice Control</title>
+    <title>Arduino Voice Control</title>
 </head>
 <body>
-    <h1>Control Your Arduino Robot</h1>
-    <button onclick="startVoiceCommand()">Start Voice Command</button>
-    <p id="status">Status: Waiting for command...</p>
+    <h1>Control Your Robot with Voice</h1>
+    <button onclick="startRecognition()">Start Voice Recognition</button>
+    <p id="status">Status: Not Listening</p>
 
     <script>
-        function startVoiceCommand() {
-            const statusElement = document.getElementById("status");
+        function startRecognition() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
 
-            // Check if the browser supports Speech Recognition
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                statusElement.textContent = "Speech Recognition not supported in this browser.";
-                return;
-            }
-
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'en-US'; // Set the language
-
-            recognition.onstart = function () {
-                statusElement.textContent = "Listening for commands...";
+            recognition.onstart = () => {
+                document.getElementById('status').textContent = 'Status: Listening...';
             };
 
-            recognition.onresult = function (event) {
+            recognition.onresult = (event) => {
                 const command = event.results[0][0].transcript.toLowerCase();
-                statusElement.textContent = `Command received: ${command}`;
-                sendCommandToArduino(command);
+                document.getElementById('status').textContent = 'Status: Command Received - ' + command;
+
+                if (command.includes('forward')) {
+                    sendCommand('forward');
+                } else if (command.includes('backward')) {
+                    sendCommand('backward');
+                } else if (command.includes('left')) {
+                    sendCommand('left');
+                } else if (command.includes('right')) {
+                    sendCommand('right');
+                } else {
+                    document.getElementById('status').textContent = 'Status: Command not recognized';
+                }
             };
 
-            recognition.onerror = function (event) {
-                statusElement.textContent = `Error: ${event.error}`;
+            recognition.onerror = (event) => {
+                document.getElementById('status').textContent = 'Error occurred in recognition: ' + event.error;
             };
 
             recognition.start();
         }
 
-        function sendCommandToArduino(command) {
-            const arduinoUrl = 'http://192.168.4.1/command'; // Replace with your Arduino's IP address
+        function sendCommand(command) {
+            const ipAddress = '192.168.4.1'; // Change this to your ESP32's IP address
+            const url = `http://${ipAddress}/command?move=${command}`;
 
-            fetch(arduinoUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ 'command': command })
-            })
-            .then(response => response.text())
-            .then(data => console.log('Command sent:', data))
-            .catch(error => console.error('Error sending command:', error));
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Success:', data);
+                    document.getElementById('status').textContent = 'Status: ' + data;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    document.getElementById('status').textContent = 'Status: Failed to send command';
+                });
         }
     </script>
 </body>
