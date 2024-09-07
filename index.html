@@ -9,6 +9,7 @@
     <h1>Control Your Robot with Voice</h1>
     <button onclick="startRecognition()">Start Voice Recognition</button>
     <p id="status">Status: Not Listening</p>
+    <img id="cameraStream" src="" alt="Camera Stream" width="320" height="240">
 
     <script>
         function startRecognition() {
@@ -46,7 +47,7 @@
         }
 
         function sendCommand(command) {
-            const ipAddress = '192.168.4.1'; // Change this to your ESP32's IP address
+            const ipAddress = '192.168.4.1'; // Update to your Arduino's IP
             const url = `http://${ipAddress}/command?move=${command}`;
 
             fetch(url)
@@ -60,6 +61,15 @@
                     document.getElementById('status').textContent = 'Status: Failed to send command';
                 });
         }
+
+        function updateCameraStream() {
+            const ipAddress = '192.168.4.1'; // Update to your Arduino's IP
+            const cameraURL = `http://${ipAddress}:81/stream`; // URL for camera stream
+            document.getElementById('cameraStream').src = cameraURL;
+        }
+
+        // Initialize camera stream
+        updateCameraStream();
     </script>
 </body>
 </html>
