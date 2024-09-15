@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arduino Voice Control</title>
+    <title>Arduino Voice Control and Camera</title>
 </head>
 <body>
     <h1>Control Your Robot with Voice</h1>
     <button onclick="startRecognition()">Start Voice Recognition</button>
     <p id="status">Status: Not Listening</p>
     <img id="cameraStream" src="" alt="Camera Stream" width="320" height="240">
+    
+    <h2>Manual Control</h2>
+    <button onclick="sendCommand('forward')">Move Forward</button>
+    <button onclick="sendCommand('backward')">Move Backward</button>
+    <button onclick="sendCommand('left')">Turn Left</button>
+    <button onclick="sendCommand('right')">Turn Right</button>
 
     <script>
         function startRecognition() {
